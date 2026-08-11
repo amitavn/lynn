@@ -1,0 +1,32 @@
+{
+  "name": "botc",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.26.2",
+  "pnpm": {
+    "overrides": {
+      "effect": "4.0.0-beta.103",
+      "@effect/platform-bun": "4.0.0-beta.103",
+      "@effect/platform-node": "4.0.0-beta.103",
+      "@effect/platform-node-shared": "4.0.0-beta.103"
+    }
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240806.0"
+  },
+  "dependencies": {
+    "@effect/platform-bun": "4.0.0-beta.103",
+    "@effect/platform-node": "4.0.0-beta.103",
+    "alchemy": "2.0.0-beta.70",
+    "effect": "4.0.0-beta.103",
+    "hono": "^4.13.1"
+  }
+}
