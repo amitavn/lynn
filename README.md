@@ -28,13 +28,14 @@ A general purpose discord bot for our server.
 
 1. Create an application at https://discord.com/developers/applications.
 2. Enable the bot and copy the **Application ID**, **Public Key**, and **Bot Token**.
-3. Copy `.dev.vars.example` to `.dev.vars` and fill in the values for local development.
-4. Deploy the Worker and set the same values as secrets through the Cloudflare dashboard or `wrangler secret put`.
+3. Copy `.dev.vars.example` to `.dev.vars` and fill in the values for local development, including `DISCORD_GUILD_ID` (right-click your server icon → Copy Server ID).
+4. Deploy the Worker and set the same values as secrets through the Cloudflare dashboard or `wrangler secret put`. (`DISCORD_GUILD_ID` is only needed locally for command registration.)
 5. Set the application's **Interactions Endpoint URL** to `<worker-url>/discord/interactions`.
-6. Register slash commands:
+6. Register slash commands against your server:
    ```bash
    pnpm register
    ```
+   The script loads `.dev.vars` and registers commands in `DISCORD_GUILD_ID` (falling back to global commands if unset).
 
 # Adding commands
 

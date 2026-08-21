@@ -5,8 +5,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "alchemy dev",
-    "deploy": "alchemy deploy",
+    "dev": "alchemy dev --env-file .dev.vars",
+    "deploy": "alchemy deploy --env-file .dev.vars",
     "register": "tsx scripts/register-commands.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

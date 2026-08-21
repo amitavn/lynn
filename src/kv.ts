@@ -1,3 +1,3 @@
 import * as Cloudflare from "alchemy/Cloudflare";
 
-export const kv = Cloudflare.KV.Namespace("lynn");
+export const kv = Cloudflare.KV.Namespace("lynn-kv");
