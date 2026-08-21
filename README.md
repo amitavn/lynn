@@ -9,6 +9,10 @@ A general purpose discord bot for our server.
 | src/discord/interactions.ts | Handles incoming Discord interaction payloads. |
 | src/discord/verify.ts | Verifies Discord interaction request signatures. |
 | src/discord/config.ts | Loads Discord secrets and configuration. |
+| src/discord/gateway.ts | Discord gateway Durable Object: WebSocket, heartbeats, mention detection, replies. |
+| src/discord/agent.ts | Per-channel AI agent Durable Object with SQLite-backed history. |
+| src/discord/pi-agent.ts | Official pi agent wiring for Workers AI. |
+| src/discord/discord-api.ts | Discord REST helpers for sending messages and typing indicators. |
 | src/worker.ts | Worker entrypoint. Handles routing requests to the necessary handler. |
 | src/kv.ts | Defines the KV namespace resource used by the bot. |
 | scripts/register-commands.ts | Registers slash commands with Discord (loads `.dev.vars` directly). |
@@ -16,6 +20,7 @@ A general purpose discord bot for our server.
 # Architectures
 + Cloudflare Workers: primary runtime for bot
 + Cloudflare KV Store: for storing bot configuration, metadata, etc.
++ Cloudflare Durable Objects: `Gateway` (Discord WebSocket connection) and `LynnAgent` (per-channel AI agent with SQLite history)
 + Alchemy resources: Worker `lynn` and KV namespace `lynn-kv` (resource ids must be unique within a stack, so the KV namespace doesn't share the Worker's id)
 
 # Stack
@@ -23,6 +28,7 @@ A general purpose discord bot for our server.
 + Effect v4 (https://www.effect.website/blog/releases/effect/40-beta)
 + Discord Interactions API (https://discord.com/developers/docs/interactions/overview)
 + @discordjs/builders and discord-api-types for command definitions
++ @earendil-works/pi-agent-core and @earendil-works/pi-ai for the AI agent, running on Cloudflare Workers AI
 
 # Local development
 
@@ -31,6 +37,8 @@ pnpm dev
 ```
 
 Runs the stack locally against the local KV simulator. `.dev.vars` is loaded automatically (the `dev` script passes `--env-file .dev.vars`).
+
+The AI agent needs `CLOUDFLARE_API_KEY` and `CLOUDFLARE_ACCOUNT_ID` in `.dev.vars`. `LYNN_MODEL` optionally overrides the model, and accepts the model id directly or prefixed with `cloudflare-workers-ai/`.
 
 # Discord setup
 
@@ -44,11 +52,18 @@ Runs the stack locally against the local KV simulator. `.dev.vars` is loaded aut
    Creates the Worker (`lynn`) and KV namespace (`lynn-kv`) and wires the `DISCORD_*` values from `.dev.vars` into the Worker automatically (the `deploy` script passes `--env-file .dev.vars`). The deploy prints the Worker URL.
 5. Invite the bot to your server: **OAuth2 → URL Generator** with scope `bot` and permissions `Send Messages` + `Use Slash Commands`, then open the generated URL and authorize on your server. The bot must be a member of `DISCORD_GUILD_ID` before registering commands, or Discord returns a 404.
 6. Set the application's **Interactions Endpoint URL** to `<worker-url>/discord/interactions`, using the URL printed by `pnpm deploy`.
-7. Register slash commands:
+7. Start the Discord gateway by visiting `<worker-url>/gateway/status` once. It connects a Durable Object to the Discord WebSocket and reconnects automatically after deploys or evictions.
+8. Register slash commands:
    ```bash
    pnpm register
    ```
    Registers commands in `DISCORD_GUILD_ID` (guild commands appear immediately). If `DISCORD_GUILD_ID` is unset, it registers commands globally instead.
+
+# Mentioning the bot
+
+Mention `@lynn` in a channel with a message, for example `@lynn summarize #announcements`. The gateway strips the mention and sends the rest to a per-channel AI agent, then posts the reply back.
+
+No privileged intents are required. Discord includes message content for messages that mention the bot. The bot invite needs **View Channel** and **Send Messages** permissions.
 
 # Adding commands
 

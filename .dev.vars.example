@@ -2,3 +2,6 @@ DISCORD_APPLICATION_ID=your_application_id
 DISCORD_PUBLIC_KEY=your_public_key
 DISCORD_TOKEN=your_bot_token
 DISCORD_GUILD_ID=your_guild_id
+CLOUDFLARE_API_KEY=your_cloudflare_api_key
+CLOUDFLARE_ACCOUNT_ID=your_cloudflare_account_id
+LYNN_MODEL=cloudflare-workers-ai/@cf/deepseek-ai/deepseek-v4-flash-0731

@@ -5,3 +5,11 @@ export const discordConfig = Config.unwrap({
     publicKey: Config.string("DISCORD_PUBLIC_KEY"),
     token: Config.redacted("DISCORD_TOKEN"),
 });
+
+export const llmConfig = Config.unwrap({
+    cloudflareApiKey: Config.redacted("CLOUDFLARE_API_KEY"),
+    cloudflareAccountId: Config.string("CLOUDFLARE_ACCOUNT_ID"),
+    model: Config.string("LYNN_MODEL").pipe(
+        Config.withDefault("@cf/deepseek-ai/deepseek-v4-flash-0731"),
+    ),
+});

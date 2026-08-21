@@ -5,7 +5,9 @@ import { type APIInteraction } from "discord-api-types/v10";
 import { Hono, type Context } from "hono";
 import { commands } from "./discord/commands/index.ts";
 import { discordConfig } from "./discord/config.ts";
+import Gateway from "./discord/gateway.ts";
 import { createInteractionHandler } from "./discord/interactions.ts";
+import LynnAgent from "./discord/agent.ts";
 import { verifyDiscordRequest } from "./discord/verify.ts";
 import { kv as KVNamespace } from "./kv.ts";
 
@@ -25,14 +27,30 @@ const effectRoute =
 
 export default Cloudflare.Worker(
     "lynn",
-    { main: import.meta.url },
+    {
+        main: import.meta.url,
+        compatibility: { flags: ["nodejs_compat"] },
+    },
     Effect.gen(function* () {
         const app = new Hono<{ Bindings: RouteEnv }>();
         const kv = yield* Cloudflare.KV.ReadWriteNamespace(KVNamespace);
         const discord = yield* discordConfig;
         const handleInteraction = createInteractionHandler(commands);
+        const gateways = yield* Gateway;
+        const agents = yield* LynnAgent;
 
         app.get("/", (c) => c.text("Hello, World!"));
+
+        app.get("/gateway/status", effectRoute((c) =>
+            Effect.gen(function* () {
+                const gateway = gateways.getByName("gateway");
+                const before = yield* gateway.status();
+                if (!before.connected) {
+                    yield* gateway.start();
+                }
+                return c.json(yield* gateway.status());
+            }),
+        ));
 
         app.post("/discord/interactions", effectRoute((c) =>
             Effect.gen(function* () {
