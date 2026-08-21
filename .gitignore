@@ -15,6 +15,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+.dev.vars
 
 # Build output
 dist/

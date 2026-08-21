@@ -5,7 +5,7 @@ import { kv } from "./src/kv.ts";
 import Worker from "./src/worker.ts";
 
 export default Alchemy.Stack(
-    "BOT-C",
+    "lynn",
     {
         providers: Cloudflare.providers(),
         state: Cloudflare.state(),

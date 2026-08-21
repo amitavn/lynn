@@ -13,5 +13,5 @@
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["src", "alchemy.run.ts"]
+  "include": ["src", "scripts", "alchemy.run.ts"]
 }

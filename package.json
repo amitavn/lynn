@@ -1,10 +1,13 @@
 {
-  "name": "botc",
+  "name": "lynn",
   "version": "1.0.0",
   "description": "",
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "dev": "alchemy dev",
+    "deploy": "alchemy deploy",
+    "register": "tsx scripts/register-commands.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -20,12 +23,17 @@
     }
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240806.0"
+    "@cloudflare/workers-types": "^4.20240806.0",
+    "@types/node": "^26.2.0",
+    "tsx": "^4.23.12"
   },
   "dependencies": {
+    "@discordjs/builders": "^1.14.1",
     "@effect/platform-bun": "4.0.0-beta.103",
     "@effect/platform-node": "4.0.0-beta.103",
     "alchemy": "2.0.0-beta.70",
+    "discord-api-types": "^0.38.53",
+    "discord-interactions": "^4.4.0",
     "effect": "4.0.0-beta.103",
     "hono": "^4.13.1"
   }
