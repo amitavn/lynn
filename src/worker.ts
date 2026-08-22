@@ -9,6 +9,7 @@ import Gateway from "./discord/gateway.ts";
 import { createInteractionHandler } from "./discord/interactions.ts";
 import LynnAgent from "./discord/agent.ts";
 import { verifyDiscordRequest } from "./discord/verify.ts";
+import { AI_AGENT_FLAG_KEY, FlagsApp } from "./flagship.ts";
 import { kv as KVNamespace } from "./kv.ts";
 
 type RunEffect = <A, E, R>(effect: Effect.Effect<A, E, R>) => Promise<A>;
@@ -38,6 +39,7 @@ export default Cloudflare.Worker(
         const handleInteraction = createInteractionHandler(commands);
         const gateways = yield* Gateway;
         const agents = yield* LynnAgent;
+        const flags = yield* Cloudflare.Flagship.ReadFlags(FlagsApp);
 
         app.get("/", (c) => c.text("Hello, World!"));
 
@@ -49,6 +51,36 @@ export default Cloudflare.Worker(
                     yield* gateway.start();
                 }
                 return c.json(yield* gateway.status());
+            }),
+        ));
+
+        app.get("/flags/test", effectRoute((c) =>
+            Effect.gen(function* () {
+                const enabled = yield* flags.getBooleanValue(
+                    AI_AGENT_FLAG_KEY,
+                    false,
+                    { userId: "test-user" },
+                );
+                return c.json({ enabled });
+            }),
+        ));
+
+        app.get("/gateway/debug-message", effectRoute((c) =>
+            Effect.gen(function* () {
+                const channelId = c.req.query("channelId");
+                const content = c.req.query("content");
+                if (!channelId || !content) {
+                    return c.text("channelId and content are required", {
+                        status: 400,
+                    });
+                }
+                const gateway = gateways.getByName("gateway");
+                yield* gateway.debugMessage(
+                    channelId,
+                    "debug-user",
+                    content,
+                );
+                return c.text("dispatched");
             }),
         ));
 
@@ -100,5 +132,8 @@ export default Cloudflare.Worker(
                 return HttpServerResponse.fromWeb(webResponse);
             }),
         };
-    }).pipe(Effect.provide(Cloudflare.KV.ReadWriteNamespaceBinding)),
+    }).pipe(
+        Effect.provide(Cloudflare.KV.ReadWriteNamespaceBinding),
+        Effect.provide(Cloudflare.Flagship.ReadFlagsBinding),
+    ),
 );

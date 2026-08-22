@@ -65,6 +65,12 @@ Mention `@lynn` in a channel with a message, for example `@lynn summarize #annou
 
 No privileged intents are required. Discord includes message content for messages that mention the bot. The bot invite needs **View Channel** and **Send Messages** permissions.
 
+# Feature flags
+
+The AI agent is gated behind Cloudflare Flagship. Create a Flagship app named `lynn-flags` and a boolean flag named `lynn-ai-agent` (variations `off`/`on`). The bot evaluates that flag before answering a mention, so you can disable or roll out the feature without redeploying.
+
+Alchemy references the app for the Worker binding but does not manage flags. The app must already exist at deploy time, and the Cloudflare credentials used by alchemy need `flagship:read` (or `flagship:write` if you want alchemy to create the app).
+
 # Adding commands
 
 Create a new file in `src/discord/commands/` that exports a `Command` with a `definition` and `execute` function, then import it in `src/discord/commands/index.ts`.

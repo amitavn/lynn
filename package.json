@@ -31,12 +31,12 @@
     "@discordjs/builders": "^1.14.1",
     "@earendil-works/pi-agent-core": "0.84.2",
     "@earendil-works/pi-ai": "0.84.2",
-    "@effect/platform-bun": "4.0.0-beta.103",
-    "@effect/platform-node": "4.0.0-beta.103",
-    "alchemy": "2.0.0-beta.70",
+    "@effect/platform-bun": "4.0.0-rc.111",
+    "@effect/platform-node": "4.0.0-rc.111",
+    "alchemy": "2.0.0-beta.74",
     "discord-api-types": "^0.38.53",
     "discord-interactions": "^4.4.0",
-    "effect": "4.0.0-beta.103",
+    "effect": "4.0.0-rc.111",
     "hono": "^4.13.1"
   }
 }

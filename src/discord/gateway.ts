@@ -6,6 +6,7 @@ import * as Schema from "effect/Schema";
 import LynnAgent from "./agent.ts";
 import { discordConfig } from "./config.ts";
 import { sendChannelMessage, sendTyping } from "./discord-api.ts";
+import { AI_AGENT_FLAG_KEY, flagshipBinding } from "../flagship.ts";
 
 const GATEWAY_URL = "wss://gateway.discord.gg/?v=10&encoding=json";
 const GUILD_MESSAGES_INTENT = 1 << 9;
@@ -58,9 +59,11 @@ export default class Gateway extends Cloudflare.DurableObject<Gateway>()(
         const discord = yield* discordConfig.pipe(Effect.orDie);
         const agents = yield* LynnAgent;
         const state = yield* Cloudflare.DurableObjectState;
+        const env = yield* Cloudflare.WorkerEnvironment;
 
         return Effect.gen(function* () {
             const runtimeContext = yield* RuntimeContext;
+            const flagship = flagshipBinding(env);
             let socket: WebSocket | null = null;
             let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
             let heartbeatIntervalMs = 41_250;
@@ -175,10 +178,39 @@ export default class Gateway extends Cloudflare.DurableObject<Gateway>()(
                     (mention) => mention.id === discord.applicationId,
                 );
                 const prompt = stripMention(d.content);
+                console.log(
+                    JSON.stringify({
+                        message: "gateway message received",
+                        id: d.id,
+                        channelId: d.channel_id,
+                        authorId: d.author.id,
+                        mentioned,
+                        prompt,
+                    }),
+                );
                 if (!mentioned && prompt === d.content) {
                     return;
                 }
                 if (prompt.length === 0) {
+                    return;
+                }
+
+                const enabled = await flagship.getBooleanValue(
+                    AI_AGENT_FLAG_KEY,
+                    false,
+                    {
+                        userId: d.author.id,
+                        channelId: d.channel_id,
+                    },
+                );
+                console.log(
+                    JSON.stringify({
+                        message: "gateway flag evaluated",
+                        id: d.id,
+                        enabled,
+                    }),
+                );
+                if (!enabled) {
                     return;
                 }
 
@@ -245,6 +277,13 @@ export default class Gateway extends Cloudflare.DurableObject<Gateway>()(
                         return;
 
                     case 0: {
+                        console.log(
+                            JSON.stringify({
+                                message: "gateway dispatch",
+                                t: envelope.t,
+                            }),
+                        );
+
                         if (envelope.t === "READY") {
                             const ready = Schema.decodeUnknownSync(ReadySchema)(
                                 envelope.d,
@@ -363,6 +402,20 @@ export default class Gateway extends Cloudflare.DurableObject<Gateway>()(
                         seq,
                         sessionId,
                     }),
+                debugMessage: (
+                    channelId: string,
+                    authorId: string,
+                    content: string,
+                ) =>
+                    Effect.tryPromise(() =>
+                        handleMessageCreate({
+                            id: crypto.randomUUID(),
+                            channel_id: channelId,
+                            author: { id: authorId, bot: false },
+                            content,
+                            mentions: [{ id: discord.applicationId }],
+                        }),
+                    ),
                 alarm: () =>
                     Effect.gen(function* () {
                         if (
