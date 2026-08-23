@@ -12,7 +12,7 @@ export default Alchemy.Stack(
     {
         providers: Layer.mergeAll(
             Cloudflare.providers(),
-            Github.providers(),
+            GitHub.providers(),
         ),
         state: Cloudflare.state(),
     },
