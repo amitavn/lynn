@@ -9,7 +9,7 @@ import Gateway from "./discord/gateway.ts";
 import { createInteractionHandler } from "./discord/interactions.ts";
 import LynnAgent from "./discord/agent.ts";
 import { verifyDiscordRequest } from "./discord/verify.ts";
-import { AI_AGENT_FLAG_KEY, FlagsApp } from "./flagship.ts";
+import { FlagsApp } from "./flagship.ts";
 import { kv as KVNamespace } from "./kv.ts";
 
 type RunEffect = <A, E, R>(effect: Effect.Effect<A, E, R>) => Promise<A>;
@@ -19,7 +19,7 @@ interface RouteEnv {
 }
 
 // SAFETY: Route handlers close over resources already resolved by the outer
-// worker effect (kv, gateways, flags) and never yield a binding themselves, so
+// worker effect (discord, gateways) and never yield a binding themselves, so
 // each handler's `R` is `never` and `runPromise` needs no provided context.
 const runEffect = <A, E, R>(effect: Effect.Effect<A, E, R>): Promise<A> =>
     Effect.runPromise(effect as Effect.Effect<A, E>);
@@ -37,12 +37,12 @@ export default Cloudflare.Worker(
     },
     Effect.gen(function* () {
         const app = new Hono<{ Bindings: RouteEnv }>();
-        const kv = yield* Cloudflare.KV.ReadWriteNamespace(KVNamespace);
+        yield* Cloudflare.KV.ReadWriteNamespace(KVNamespace);
         const discord = yield* discordConfig;
         const handleInteraction = createInteractionHandler(commands);
         const gateways = yield* Gateway;
         yield* LynnAgent;
-        const flags = yield* Cloudflare.Flagship.ReadFlags(FlagsApp);
+        yield* Cloudflare.Flagship.ReadFlags(FlagsApp);
 
         app.get("/", (c) => c.text("Hello, World!"));
 
@@ -54,36 +54,6 @@ export default Cloudflare.Worker(
                     yield* gateway.start();
                 }
                 return c.json(yield* gateway.status());
-            }),
-        ));
-
-        app.get("/flags/test", effectRoute((c) =>
-            Effect.gen(function* () {
-                const enabled = yield* flags.getBooleanValue(
-                    AI_AGENT_FLAG_KEY,
-                    false,
-                    { userId: "test-user" },
-                );
-                return c.json({ enabled });
-            }),
-        ));
-
-        app.get("/gateway/debug-message", effectRoute((c) =>
-            Effect.gen(function* () {
-                const channelId = c.req.query("channelId");
-                const content = c.req.query("content");
-                if (!channelId || !content) {
-                    return c.text("channelId and content are required", {
-                        status: 400,
-                    });
-                }
-                const gateway = gateways.getByName("gateway");
-                yield* gateway.debugMessage(
-                    channelId,
-                    "debug-user",
-                    content,
-                );
-                return c.text("dispatched");
             }),
         ));
 
@@ -103,21 +73,6 @@ export default Cloudflare.Worker(
                 const response = handleInteraction(result.body as APIInteraction);
                 return c.json(response);
             }),
-        ));
-
-        app.post("/kv_test_put", effectRoute((c) =>
-            Effect.gen(function* () {
-                yield* kv.put("greeting", "howdy!");
-                return c.text("put");
-            }).pipe(
-                Effect.catchTag("NamespaceError", (error) =>
-                    Effect.succeed(c.text(error.message, { status: 500 })),
-                ),
-            ),
-        ));
-
-        app.get("/kv_test_get", effectRoute((c) =>
-            Effect.succeed(c.text("test")),
         ));
 
         return {
