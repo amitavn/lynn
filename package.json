@@ -8,23 +8,32 @@
     "dev": "alchemy dev --env-file .dev.vars",
     "deploy": "alchemy deploy --env-file .dev.vars",
     "register": "tsx scripts/register-commands.ts",
+    "lint": "oxlint",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.26.2",
+  "overrides": {
+    "effect": "4.0.0-rc.111",
+    "@effect/platform-bun": "4.0.0-rc.111",
+    "@effect/platform-node": "4.0.0-rc.111",
+    "@effect/platform-node-shared": "4.0.0-rc.111"
+  },
   "pnpm": {
     "overrides": {
-      "effect": "4.0.0-beta.103",
-      "@effect/platform-bun": "4.0.0-beta.103",
-      "@effect/platform-node": "4.0.0-beta.103",
-      "@effect/platform-node-shared": "4.0.0-beta.103"
+      "effect": "4.0.0-rc.111",
+      "@effect/platform-bun": "4.0.0-rc.111",
+      "@effect/platform-node": "4.0.0-rc.111",
+      "@effect/platform-node-shared": "4.0.0-rc.111"
     }
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240806.0",
+    "@oxlint/plugins": "1.79.0",
     "@types/node": "^26.2.0",
+    "oxlint": "1.79.0",
     "tsx": "^4.23.12"
   },
   "dependencies": {

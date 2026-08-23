@@ -140,16 +140,15 @@ export const persistMessages = (
 
     for (const message of messages) {
         if (message.role === "user") {
-            const text =
-                typeof message.content === "string"
-                    ? message.content
-                    : message.content
-                          .filter(
-                              (block): block is TextContent =>
-                                  block.type === "text",
-                          )
-                          .map((block) => block.text)
-                          .join("");
+            const text = Array.isArray(message.content)
+                ? message.content
+                      .filter(
+                          (block): block is TextContent =>
+                              block.type === "text",
+                      )
+                      .map((block) => block.text)
+                      .join("")
+                : message.content;
             persisted.push({
                 role: "user",
                 text,

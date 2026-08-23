@@ -1,7 +1,9 @@
 import {
+    ApplicationCommandType,
     InteractionResponseType,
     InteractionType,
     type APIApplicationCommandInteractionData,
+    type APIChatInputApplicationCommandInteractionData,
     type APIInteraction,
     type APIInteractionResponse,
 } from "discord-api-types/v10";
@@ -19,8 +21,8 @@ const unsupportedInteraction: APIInteractionResponse = {
 
 const isChatInputCommand = (
     data: APIApplicationCommandInteractionData,
-): data is APIApplicationCommandInteractionData & { readonly name: string } =>
-    "name" in data && typeof data.name === "string";
+): data is APIChatInputApplicationCommandInteractionData =>
+    data.type === ApplicationCommandType.ChatInput;
 
 export const createInteractionHandler = (commands: readonly Command[]) =>
     (interaction: APIInteraction): APIInteractionResponse => {
