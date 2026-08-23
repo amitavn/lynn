@@ -1,6 +1,7 @@
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import * as GitHub from "alchemy/GitHub";
+import * as Config from "effect/Config";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Redacted from "effect/Redacted";
@@ -23,6 +24,7 @@ export default Alchemy.Stack(
           effect: "allow",
           permissionGroups: [
             "Secrets Store Write",
+            "Workers AI Read",
             "Workers Scripts Write",
             "Workers KV Storage Write",
             "Queues Write",
@@ -49,6 +51,39 @@ export default Alchemy.Stack(
       repository: "lynn",
       name: "CLOUDFLARE_ACCOUNT_ID",
       value: Redacted.make(accountId),
+    });
+
+    const discordApplicationId = yield* Config.redacted("DISCORD_APPLICATION_ID");
+    const discordPublicKey = yield* Config.redacted("DISCORD_PUBLIC_KEY");
+    const discordToken = yield* Config.redacted("DISCORD_TOKEN");
+    const lynnModel = yield* Config.redacted("LYNN_MODEL");
+
+    yield* GitHub.Secret("discord-application-id", {
+      owner: "amitavn",
+      repository: "lynn",
+      name: "DISCORD_APPLICATION_ID",
+      value: discordApplicationId,
+    });
+
+    yield* GitHub.Secret("discord-public-key", {
+      owner: "amitavn",
+      repository: "lynn",
+      name: "DISCORD_PUBLIC_KEY",
+      value: discordPublicKey,
+    });
+
+    yield* GitHub.Secret("discord-token", {
+      owner: "amitavn",
+      repository: "lynn",
+      name: "DISCORD_TOKEN",
+      value: discordToken,
+    });
+
+    yield* GitHub.Secret("lynn-model", {
+      owner: "amitavn",
+      repository: "lynn",
+      name: "LYNN_MODEL",
+      value: lynnModel,
     });
   }),
 );
