@@ -5,6 +5,7 @@ import * as Output from "alchemy/Output";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { kv } from "./src/kv.ts";
+import { AIAgentFlag } from "./src/flagship.ts";
 import Worker from "./src/worker.ts";
 
 export default Alchemy.Stack(
@@ -19,6 +20,7 @@ export default Alchemy.Stack(
     Effect.gen(function* () {
         const worker = yield* Worker;
         const kvNamespace = yield* kv;
+        yield* AIAgentFlag;
 
         const github = yield* GitHub.GitHubEnv.pipe(Effect.orElseSucceed(() => undefined));
         if (github?.pr) {
