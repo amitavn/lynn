@@ -18,6 +18,9 @@ interface RouteEnv {
     run: RunEffect;
 }
 
+// SAFETY: Route handlers close over resources already resolved by the outer
+// worker effect (kv, gateways, flags) and never yield a binding themselves, so
+// each handler's `R` is `never` and `runPromise` needs no provided context.
 const runEffect = <A, E, R>(effect: Effect.Effect<A, E, R>): Promise<A> =>
     Effect.runPromise(effect as Effect.Effect<A, E>);
 
@@ -38,7 +41,7 @@ export default Cloudflare.Worker(
         const discord = yield* discordConfig;
         const handleInteraction = createInteractionHandler(commands);
         const gateways = yield* Gateway;
-        const agents = yield* LynnAgent;
+        yield* LynnAgent;
         const flags = yield* Cloudflare.Flagship.ReadFlags(FlagsApp);
 
         app.get("/", (c) => c.text("Hello, World!"));
@@ -94,6 +97,9 @@ export default Cloudflare.Worker(
                     return c.text("Unauthorized", { status: 401 });
                 }
 
+                // SAFETY: verifyDiscordRequest already validated the Ed25519
+                // signature against Discord's public key, so `result.body` is an
+                // authentic interaction payload and can be treated as APIInteraction.
                 const response = handleInteraction(result.body as APIInteraction);
                 return c.json(response);
             }),
@@ -111,9 +117,7 @@ export default Cloudflare.Worker(
         ));
 
         app.get("/kv_test_get", effectRoute((c) =>
-            Effect.gen(function* () {
-                return c.text("test");
-            }),
+            Effect.succeed(c.text("test")),
         ));
 
         return {
