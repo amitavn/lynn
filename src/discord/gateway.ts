@@ -402,20 +402,6 @@ export default class Gateway extends Cloudflare.DurableObject<Gateway>()(
                         seq,
                         sessionId,
                     }),
-                debugMessage: (
-                    channelId: string,
-                    authorId: string,
-                    content: string,
-                ) =>
-                    Effect.tryPromise(() =>
-                        handleMessageCreate({
-                            id: crypto.randomUUID(),
-                            channel_id: channelId,
-                            author: { id: authorId, bot: false },
-                            content,
-                            mentions: [{ id: discord.applicationId }],
-                        }),
-                    ),
                 alarm: () =>
                     Effect.gen(function* () {
                         if (
