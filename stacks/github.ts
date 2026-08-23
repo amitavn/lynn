@@ -31,6 +31,7 @@ export default Alchemy.Stack(
             "Pages Write",
             "Account Settings Write",
             "Workers Tail Read",
+            { id: "4c11be9f5a7740eaa7390ae7e38d91bc" }, // Flagship Write
           ],
           resources: {
             [`com.cloudflare.api.account.${accountId}`]: "*",
