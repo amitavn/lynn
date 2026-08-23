@@ -20,17 +20,18 @@ export default Alchemy.Stack(
         const worker = yield* Worker;
         const kvNamespace = yield* kv;
 
-        if (process.env.PULL_REQUEST) {
+        const github = yield* GitHub.GitHubEnv.pipe(Effect.orElseSucceed(() => undefined));
+        if (github?.pr) {
             yield* GitHub.Comment("preview-comment", {
-                owner: "your-org",
-                repository: "your-repo",
-                issueNumber: Number(process.env.PULL_REQUEST),
+                owner: github.owner,
+                repository: github.repository,
+                issueNumber: github.pr,
                 body: Output.interpolate`
                   ## Preview Deployed
 
                   **URL:** ${worker.url}
 
-                  Built from commit ${process.env.GITHUB_SHA?.slice(0, 7)}
+                  Built from commit ${github.sha.slice(0, 7)}
 
                   ---
                   _This comment updates automatically with each push._
