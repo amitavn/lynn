@@ -15,12 +15,18 @@
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.26.2",
+  "overrides": {
+    "effect": "4.0.0-rc.111",
+    "@effect/platform-bun": "4.0.0-rc.111",
+    "@effect/platform-node": "4.0.0-rc.111",
+    "@effect/platform-node-shared": "4.0.0-rc.111"
+  },
   "pnpm": {
     "overrides": {
-      "effect": "4.0.0-beta.103",
-      "@effect/platform-bun": "4.0.0-beta.103",
-      "@effect/platform-node": "4.0.0-beta.103",
-      "@effect/platform-node-shared": "4.0.0-beta.103"
+      "effect": "4.0.0-rc.111",
+      "@effect/platform-bun": "4.0.0-rc.111",
+      "@effect/platform-node": "4.0.0-rc.111",
+      "@effect/platform-node-shared": "4.0.0-rc.111"
     }
   },
   "devDependencies": {
