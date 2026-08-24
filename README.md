@@ -63,6 +63,8 @@ The AI agent needs `CLOUDFLARE_API_KEY` and `CLOUDFLARE_ACCOUNT_ID` in `.dev.var
 
 Mention `@lynn` in a channel with a message, for example `@lynn summarize #announcements`. The gateway strips the mention and sends the rest to a per-channel AI agent, then posts the reply back.
 
+If the first word after the mention matches a slash command name — for example `@lynn ping`, optionally with a leading slash (`@lynn /ping`) — that command runs instead of the agent, with the remaining text passed as arguments. Commands bypass the `lynn-ai-agent` feature flag; only the agent fallback is gated.
+
 No privileged intents are required. Discord includes message content for messages that mention the bot. The bot invite needs **View Channel** and **Send Messages** permissions.
 
 # Feature flags

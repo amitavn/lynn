@@ -4,8 +4,10 @@ import * as Effect from "effect/Effect";
 import * as Redacted from "effect/Redacted";
 import * as Schema from "effect/Schema";
 import LynnAgent from "./agent.ts";
+import { commands } from "./commands/index.ts";
 import { discordConfig } from "./config.ts";
 import { sendChannelMessage, sendTyping } from "./discord-api.ts";
+import type { Command } from "./types.ts";
 import { AI_AGENT_FLAG_KEY, flagshipBinding } from "../flagship.ts";
 
 const GATEWAY_URL = "wss://gateway.discord.gg/?v=10&encoding=json";
@@ -52,6 +54,21 @@ interface MessageCreate {
     readonly content: string;
     readonly mentions: readonly { readonly id: string }[];
 }
+
+const parseMentionCommand = (
+    prompt: string,
+): { command: Command; args: string } | null => {
+    const match = /^\/?(\S+)(?:\s+([\s\S]*))?$/.exec(prompt);
+    if (match === null) {
+        return null;
+    }
+    const command = commands.find(
+        (candidate) => candidate.definition.name === match[1].toLowerCase(),
+    );
+    return command === undefined
+        ? null
+        : { command, args: match[2]?.trim() ?? "" };
+};
 
 export default class Gateway extends Cloudflare.DurableObject<Gateway>()(
     "Gateway",
@@ -192,6 +209,42 @@ export default class Gateway extends Cloudflare.DurableObject<Gateway>()(
                     return;
                 }
                 if (prompt.length === 0) {
+                    return;
+                }
+
+                const mentionCommand = parseMentionCommand(prompt);
+                if (mentionCommand !== null) {
+                    console.log(
+                        JSON.stringify({
+                            message: "gateway command invoked",
+                            id: d.id,
+                            channelId: d.channel_id,
+                            command: mentionCommand.command.definition.name,
+                        }),
+                    );
+                    try {
+                        await sendTyping(d.channel_id, discord.token);
+                        const result = mentionCommand.command.execute({
+                            channelId: d.channel_id,
+                            userId: d.author.id,
+                            args: mentionCommand.args,
+                        });
+                        await sendChannelMessage(
+                            d.channel_id,
+                            result.content,
+                            discord.token,
+                        );
+                    } catch (error) {
+                        console.error(
+                            JSON.stringify({
+                                message: "gateway command failed",
+                                error:
+                                    error instanceof Error
+                                        ? error.message
+                                        : String(error),
+                            }),
+                        );
+                    }
                     return;
                 }
 
