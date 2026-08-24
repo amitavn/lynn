@@ -1,4 +1,6 @@
+import { Stage } from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
+import * as Output from "alchemy/Output";
 import * as Effect from "effect/Effect";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import { type APIInteraction } from "discord-api-types/v10";
@@ -34,6 +36,15 @@ export default Cloudflare.Worker(
     {
         main: import.meta.url,
         compatibility: { flags: ["nodejs_compat"] },
+        domain: Output.fromEffect(
+            Effect.gen(function* () {
+                const stage = yield* Stage;
+                return stage === "prod"
+                    ? { name: "lynn-bot.twdl.us", zoneName: "twdl.us" }
+                    : undefined;
+            }),
+        ),
+        workersDev: { enabled: false, previewsEnabled: true },
     },
     Effect.gen(function* () {
         const app = new Hono<{ Bindings: RouteEnv }>();
