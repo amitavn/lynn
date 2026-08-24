@@ -7,7 +7,7 @@ import {
     type APIInteraction,
     type APIInteractionResponse,
 } from "discord-api-types/v10";
-import type { Command } from "./types.ts";
+import type { Command, CommandResult } from "./types.ts";
 
 const unknownCommand: APIInteractionResponse = {
     type: InteractionResponseType.ChannelMessageWithSource,
@@ -18,6 +18,14 @@ const unsupportedInteraction: APIInteractionResponse = {
     type: InteractionResponseType.ChannelMessageWithSource,
     data: { content: "This interaction is not supported", flags: 1 << 6 },
 };
+
+const toInteractionResponse = (result: CommandResult): APIInteractionResponse => ({
+    type: InteractionResponseType.ChannelMessageWithSource,
+    data: {
+        content: result.content,
+        flags: result.ephemeral === true ? 1 << 6 : undefined,
+    },
+});
 
 const isChatInputCommand = (
     data: APIApplicationCommandInteractionData,
@@ -35,7 +43,16 @@ export const createInteractionHandler = (commands: readonly Command[]) =>
 
             if (isChatInputCommand(data)) {
                 const command = commands.find((c) => c.definition.name === data.name);
-                return command ? command.execute(interaction) : unknownCommand;
+                return command
+                    ? toInteractionResponse(
+                          command.execute({
+                              channelId: interaction.channel_id,
+                              userId:
+                                  interaction.member?.user.id ?? interaction.user?.id,
+                              args: "",
+                          }),
+                      )
+                    : unknownCommand;
             }
         }
 
