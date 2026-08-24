@@ -31,6 +31,8 @@ export default Alchemy.Stack(
             "Pages Write",
             "Account Settings Write",
             "Workers Tail Read",
+            // name shorthand would resolve to the zone-scoped variant
+            { id: "1e13c5124ca64b72b1969a67e8829049" }, // Access: Apps and Policies Write (account)
           ],
           resources: {
             [`com.cloudflare.api.account.${accountId}`]: "*",
