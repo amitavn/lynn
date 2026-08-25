@@ -4,6 +4,9 @@ export const discordConfig = Config.unwrap({
     applicationId: Config.string("DISCORD_APPLICATION_ID"),
     publicKey: Config.string("DISCORD_PUBLIC_KEY"),
     token: Config.redacted("DISCORD_TOKEN"),
+    boulderingChannelId: Config.string("DISCORD_BOULDERING_CHANNEL_ID").pipe(
+        Config.withDefault(""),
+    ),
 });
 
 export const llmConfig = Config.unwrap({
