@@ -11,6 +11,10 @@ import Gateway from "./discord/gateway.ts";
 import { createInteractionHandler } from "./discord/interactions.ts";
 import LynnAgent from "./discord/agent.ts";
 import { verifyDiscordRequest } from "./discord/verify.ts";
+import {
+    BOULDERING_REMINDER_CRONS,
+    sendBoulderingReminder,
+} from "./discord/reminders.ts";
 import { FlagsApp } from "./flagship.ts";
 import { kv as KVNamespace } from "./kv.ts";
 
@@ -54,6 +58,15 @@ export default Cloudflare.Worker(
         const gateways = yield* Gateway;
         yield* LynnAgent;
         yield* Cloudflare.Flagship.ReadFlags(FlagsApp);
+        for (const cron of BOULDERING_REMINDER_CRONS) {
+            yield* Cloudflare.Workers.cron(cron, (controller) =>
+                sendBoulderingReminder(
+                    controller,
+                    discord.boulderingChannelId,
+                    discord.token,
+                ),
+            );
+        }
 
         app.get("/", (c) => c.text("Hello, World!"));
 
@@ -105,5 +118,6 @@ export default Cloudflare.Worker(
     }).pipe(
         Effect.provide(Cloudflare.KV.ReadWriteNamespaceBinding),
         Effect.provide(Cloudflare.Flagship.ReadFlagsBinding),
+        Effect.provide(Cloudflare.Workers.CronEventSourceLive),
     ),
 );
