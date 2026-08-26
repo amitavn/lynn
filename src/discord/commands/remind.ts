@@ -147,12 +147,16 @@ const executeRequest = async (
                 request.whenText === undefined
                     ? null
                     : parseWhen(request.whenText, Date.now());
-            if (parsed === null || request.message === undefined || request.message.length === 0) {
+            if (parsed === null) {
                 return `I couldn't read that as a time. ${USAGE}`;
+            }
+            const message = request.message ?? parsed.rest;
+            if (message.length === 0) {
+                return "What should I remind you about? Put the reminder text after the time.";
             }
             const outcome = await ctx.reminders.at({
                 channelId,
-                content: request.message,
+                content: message,
                 at: parsed.at,
                 createdBy: ctx.userId,
             });
@@ -162,8 +166,11 @@ const executeRequest = async (
         }
         case "every": {
             const schedule = buildRecurring(request);
-            if (schedule === null || request.message === undefined || request.message.length === 0) {
+            if (schedule === null) {
                 return `I couldn't read that recurrence. ${USAGE}`;
+            }
+            if (request.message === undefined || request.message.length === 0) {
+                return "What should I remind you about? Put the reminder text after the time.";
             }
             const outcome = await ctx.reminders.recurring({
                 channelId,
