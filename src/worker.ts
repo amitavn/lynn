@@ -10,6 +10,7 @@ import { discordConfig } from "./discord/config.ts";
 import Gateway from "./discord/gateway.ts";
 import { createInteractionHandler } from "./discord/interactions.ts";
 import LynnAgent from "./discord/agent.ts";
+import Scheduler from "./schedule/scheduler.ts";
 import { verifyDiscordRequest } from "./discord/verify.ts";
 import { FlagsApp } from "./flagship.ts";
 import { kv as KVNamespace } from "./kv.ts";
@@ -52,6 +53,7 @@ export default Cloudflare.Worker(
         const discord = yield* discordConfig;
         const handleInteraction = createInteractionHandler(commands);
         const gateways = yield* Gateway;
+        yield* Scheduler;
         yield* LynnAgent;
         yield* Cloudflare.Flagship.ReadFlags(FlagsApp);
 
