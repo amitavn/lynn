@@ -13,5 +13,5 @@ export interface CommandResult {
 
 export interface Command {
     readonly definition: RESTPostAPIApplicationCommandsJSONBody;
-    readonly execute: (context: CommandContext) => CommandResult;
+    readonly execute: (context: CommandContext) => Promise<CommandResult>;
 }

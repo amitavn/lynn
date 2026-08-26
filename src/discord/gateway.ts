@@ -224,7 +224,7 @@ export default class Gateway extends Cloudflare.DurableObject<Gateway>()(
                     );
                     try {
                         await sendTyping(d.channel_id, discord.token);
-                        const result = mentionCommand.command.execute({
+                        const result = await mentionCommand.command.execute({
                             channelId: d.channel_id,
                             userId: d.author.id,
                             args: mentionCommand.args,

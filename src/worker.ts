@@ -83,7 +83,9 @@ export default Cloudflare.Worker(
                 // SAFETY: verifyDiscordRequest already validated the Ed25519
                 // signature against Discord's public key, so `result.body` is an
                 // authentic interaction payload and can be treated as APIInteraction.
-                const response = handleInteraction(result.body as APIInteraction);
+                const response = yield* Effect.tryPromise(() =>
+                    handleInteraction(result.body as APIInteraction),
+                );
                 return c.json(response);
             }),
         ));

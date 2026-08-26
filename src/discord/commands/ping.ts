@@ -6,5 +6,5 @@ export const ping: Command = {
         .setName("ping")
         .setDescription("Replies with pong")
         .toJSON(),
-    execute: () => ({ content: "Pong!" }),
+    execute: async () => ({ content: "Pong!" }),
 };

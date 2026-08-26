@@ -33,7 +33,7 @@ const isChatInputCommand = (
     data.type === ApplicationCommandType.ChatInput;
 
 export const createInteractionHandler = (commands: readonly Command[]) =>
-    (interaction: APIInteraction): APIInteractionResponse => {
+    async (interaction: APIInteraction): Promise<APIInteractionResponse> => {
         if (interaction.type === InteractionType.Ping) {
             return { type: InteractionResponseType.Pong };
         }
@@ -45,7 +45,7 @@ export const createInteractionHandler = (commands: readonly Command[]) =>
                 const command = commands.find((c) => c.definition.name === data.name);
                 return command
                     ? toInteractionResponse(
-                          command.execute({
+                          await command.execute({
                               channelId: interaction.channel_id,
                               userId:
                                   interaction.member?.user.id ?? interaction.user?.id,
