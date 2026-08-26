@@ -46,7 +46,12 @@ export default Cloudflare.Worker(
                     : undefined;
             }),
         ),
-        workersDev: { enabled: false, previewsEnabled: true },
+        workersDev: Output.fromEffect(
+            Effect.gen(function* () {
+                const stage = yield* Stage;
+                return stage === "prod" ? { enabled: false } : true;
+            }),
+        ),
     },
     Effect.gen(function* () {
         const app = new Hono<{ Bindings: RouteEnv }>();
