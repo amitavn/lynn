@@ -46,7 +46,7 @@ const defineTask = <S extends Schema.ConstraintDecoder<unknown, never>>(
 
 export const ReminderPayload = Schema.Struct({
     type: Schema.Literals(["reminder"]),
-    channelId: Schema.String,
+    channelId: Schema.String.pipe(Schema.check(Schema.isMinLength(1))),
     content: Schema.String,
 });
 

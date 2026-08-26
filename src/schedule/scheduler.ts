@@ -112,10 +112,11 @@ export default class Scheduler extends Cloudflare.DurableObject<Scheduler>()(
         const upsertAutomation = (automation: Automation) =>
             Effect.gen(function* () {
                 const type = tagOf(automation.payload);
-                if (type === null || !dispatchers.get(type)) {
+                const task = type === null ? undefined : dispatchers.get(type);
+                if (type === null || task === undefined || !task.validate(automation.payload)) {
                     console.error(
                         JSON.stringify({
-                            message: "automation has unregistered payload type",
+                            message: "automation payload invalid or unregistered; skipping",
                             automation: automation.name,
                         }),
                     );
@@ -139,6 +140,7 @@ export default class Scheduler extends Cloudflare.DurableObject<Scheduler>()(
                          schedule = excluded.schedule,
                          payload = excluded.payload,
                          next_fire_at = excluded.next_fire_at`,
+                    automation.name,
                     automation.name,
                     type,
                     JSON.stringify(Schema.encodeSync(Schedule)(automation.schedule)),
