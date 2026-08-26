@@ -1,12 +1,12 @@
 import type { Schedule } from "./spec.ts";
 
-interface LocalDate {
+export interface LocalDate {
     readonly year: number;
     readonly month: number;
     readonly day: number;
 }
 
-interface LocalDateTime extends LocalDate {
+export interface LocalDateParts extends LocalDate {
     readonly hour: number;
     readonly minute: number;
 }
@@ -64,7 +64,7 @@ const zoneOffsetMinutes = (timeZone: string, epochMs: number): number => {
 const localDateTime = (
     timeZone: string,
     epochMs: number,
-): LocalDateTime => {
+): LocalDateParts => {
     const values: Record<string, string> = {};
     for (const part of partFormatter(timeZone).formatToParts(
         new Date(epochMs),
@@ -167,6 +167,21 @@ const wallClockToEpoch = (
     }
     const gap = gapTransition(timeZone, naive);
     return gap === null ? [] : [gap];
+};
+
+export const localDate = (
+    timeZone: string,
+    epochMs: number,
+): LocalDate => localDateTime(timeZone, epochMs);
+
+export const civilToEpoch = (
+    timeZone: string,
+    date: LocalDate,
+    hour: number,
+    minute: number,
+): number | null => {
+    const matches = wallClockToEpoch(timeZone, date, hour, minute);
+    return matches.length > 0 ? matches[0] : null;
 };
 
 export const nextFireAt = (

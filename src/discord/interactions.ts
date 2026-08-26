@@ -7,7 +7,8 @@ import {
     type APIInteraction,
     type APIInteractionResponse,
 } from "discord-api-types/v10";
-import type { Command, CommandResult } from "./types.ts";
+import type { Command, CommandContext, CommandResult } from "./types.ts";
+import type { Reminders } from "./reminders.ts";
 
 const unknownCommand: APIInteractionResponse = {
     type: InteractionResponseType.ChannelMessageWithSource,
@@ -32,7 +33,10 @@ const isChatInputCommand = (
 ): data is APIChatInputApplicationCommandInteractionData =>
     data.type === ApplicationCommandType.ChatInput;
 
-export const createInteractionHandler = (commands: readonly Command[]) =>
+export const createInteractionHandler = (
+    commands: readonly Command[],
+    deps: { readonly reminders: Reminders },
+) =>
     async (interaction: APIInteraction): Promise<APIInteractionResponse> => {
         if (interaction.type === InteractionType.Ping) {
             return { type: InteractionResponseType.Pong };
@@ -43,16 +47,17 @@ export const createInteractionHandler = (commands: readonly Command[]) =>
 
             if (isChatInputCommand(data)) {
                 const command = commands.find((c) => c.definition.name === data.name);
-                return command
-                    ? toInteractionResponse(
-                          await command.execute({
-                              channelId: interaction.channel_id,
-                              userId:
-                                  interaction.member?.user.id ?? interaction.user?.id,
-                              args: "",
-                          }),
-                      )
-                    : unknownCommand;
+                if (command === undefined) {
+                    return unknownCommand;
+                }
+                const context: CommandContext = {
+                    channelId: interaction.channel_id,
+                    userId: interaction.member?.user.id ?? interaction.user?.id,
+                    args: "",
+                    data,
+                    reminders: deps.reminders,
+                };
+                return toInteractionResponse(await command.execute(context));
             }
         }
 

@@ -11,6 +11,7 @@ import Gateway from "./discord/gateway.ts";
 import { createInteractionHandler } from "./discord/interactions.ts";
 import LynnAgent from "./discord/agent.ts";
 import Scheduler from "./schedule/scheduler.ts";
+import { createReminders } from "./discord/reminders.ts";
 import { verifyDiscordRequest } from "./discord/verify.ts";
 import { FlagsApp } from "./flagship.ts";
 import { kv as KVNamespace } from "./kv.ts";
@@ -49,11 +50,12 @@ export default Cloudflare.Worker(
     },
     Effect.gen(function* () {
         const app = new Hono<{ Bindings: RouteEnv }>();
-        yield* Cloudflare.KV.ReadWriteNamespace(KVNamespace);
         const discord = yield* discordConfig;
-        const handleInteraction = createInteractionHandler(commands);
+        yield* Cloudflare.KV.ReadWriteNamespace(KVNamespace);
+        const schedulers = yield* Scheduler;
+        const reminders = createReminders(() => schedulers.getByName("scheduler"));
+        const handleInteraction = createInteractionHandler(commands, { reminders });
         const gateways = yield* Gateway;
-        yield* Scheduler;
         yield* LynnAgent;
         yield* Cloudflare.Flagship.ReadFlags(FlagsApp);
 

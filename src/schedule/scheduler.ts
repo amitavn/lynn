@@ -25,6 +25,7 @@ export interface JobView {
     readonly name: string | null;
     readonly type: string;
     readonly schedule: Schedule;
+    readonly payload: string;
     readonly createdBy: string | null;
     readonly nextFireAt: number | null;
 }
@@ -169,6 +170,7 @@ export default class Scheduler extends Cloudflare.DurableObject<Scheduler>()(
                         name: row.name,
                         type: row.type,
                         schedule: decodeSchedule(row.schedule),
+                        payload: row.payload,
                         createdBy: row.created_by,
                         nextFireAt: row.next_fire_at,
                     };

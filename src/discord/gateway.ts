@@ -4,6 +4,9 @@ import * as Effect from "effect/Effect";
 import * as Redacted from "effect/Redacted";
 import * as Schema from "effect/Schema";
 import LynnAgent from "./agent.ts";
+import { createReminders } from "./reminders.ts";
+import type { Reminders } from "./reminders.ts";
+import Scheduler from "../schedule/scheduler.ts";
 import { commands } from "./commands/index.ts";
 import { discordConfig } from "./config.ts";
 import { sendChannelMessage, sendTyping } from "./discord-api.ts";
@@ -75,6 +78,10 @@ export default class Gateway extends Cloudflare.DurableObject<Gateway>()(
     Effect.gen(function* () {
         const discord = yield* discordConfig.pipe(Effect.orDie);
         const agents = yield* LynnAgent;
+        const schedulers = yield* Scheduler;
+        const reminders: Reminders = createReminders(() =>
+            schedulers.getByName("scheduler"),
+        );
         const state = yield* Cloudflare.DurableObjectState;
         const env = yield* Cloudflare.WorkerEnvironment;
 
@@ -228,6 +235,7 @@ export default class Gateway extends Cloudflare.DurableObject<Gateway>()(
                             channelId: d.channel_id,
                             userId: d.author.id,
                             args: mentionCommand.args,
+                            reminders,
                         });
                         await sendChannelMessage(
                             d.channel_id,
